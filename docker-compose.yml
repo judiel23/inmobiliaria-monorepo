@@ -3,6 +3,8 @@ services:
   elasticsearch:
     image: elasticsearch:7.17.8
     environment:
+      - http.cors.enabled=true
+      - http.cors.allow-origin=/.*/
       - node.name=elasticsearch-node
       - cluster.name=elasticsearch-cluster
       - discovery.type=single-node
@@ -17,18 +19,25 @@ services:
     ports:
       - 9200:9200
       - 9300:9300
-  keycloak:
-    image: jboss/keycloak:11.0.2
-    environment:
-      - KEYCLOAK_USER=admin
-      - KEYCLOAK_PASSWORD=password
+    networks:
+      - webnet
+  elasticvue:
+    image: cars10/elasticvue
     ports:
       - 8080:8080
-  server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
+    networks:
+      - webnet
+  sql-server-db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
     ports:
-      - 3000:3000
+      - "1433:1433"
+    environment:
+      - SA_PASSWORD=SuperStr0ng
+      - ACCEPT_EULA="Y"
+    networks:
+      - webnet
 volumes:
   elasticsearch-data:
+networks:
+  webnet:
+    driver: bridge
